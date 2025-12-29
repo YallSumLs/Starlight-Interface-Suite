@@ -4674,6 +4674,7 @@ function Starlight:CreateWindow(WindowSettings)
 					ElementSettings.CurrentOption = ElementSettings.CurrentOption or ({ElementSettings.Options[1]})
 					ElementSettings.MultipleOptions = ElementSettings.MultipleOptions or false
 					ElementSettings.Special = ElementSettings.Special or 0
+					ElementSettings.SearchBar = ElementSettings.SearchBar or false
 
 					local Element = {
 						Values = ElementSettings,
@@ -8146,6 +8147,7 @@ function Starlight:CreateWindow(WindowSettings)
 						NestedSettings.MultipleOptions = NestedSettings.MultipleOptions or false
 						NestedSettings.Special = NestedSettings.Special or 0
 						NestedSettings.Required = NestedSettings.Required or false
+						NestedSettings.SearchBar = NestedSettings.SearchBar or false
 
 						local NestedElement = {
 							Values = NestedSettings,
@@ -8186,6 +8188,71 @@ function Starlight:CreateWindow(WindowSettings)
 								end
 							end
 
+if NestedElement.Values.SearchBar then
+						-- Adjust the List size to make room for Search Bar
+						NestedElement.Instances[2].List.Position = UDim2.new(0, 0, 0, 32)
+						NestedElement.Instances[2].List.Size = UDim2.new(1, 0, 1, -32)
+
+						-- Create Search Frame
+						local SearchFrame = Instance.new("Frame")
+						SearchFrame.Name = "SearchFrame"
+						SearchFrame.Parent = NestedElement.Instances[2]
+						SearchFrame.Size = UDim2.new(1, -12, 0, 24)
+						SearchFrame.Position = UDim2.new(0, 6, 0, 4)
+						SearchFrame.BackgroundColor3 = Starlight.CurrentTheme.Backgrounds.Dark
+						SearchFrame.BorderSizePixel = 0
+						
+						local SearchStroke = Instance.new("UIStroke")
+						SearchStroke.Parent = SearchFrame
+						SearchStroke.Color = Starlight.CurrentTheme.Foregrounds.Dark
+						SearchStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+
+						local SearchCorner = Instance.new("UICorner")
+						SearchCorner.CornerRadius = UDim.new(0, 4)
+						SearchCorner.Parent = SearchFrame
+
+						local SearchInput = Instance.new("TextBox")
+						SearchInput.Name = "Input"
+						SearchInput.Parent = SearchFrame
+						SearchInput.Size = UDim2.new(1, -10, 1, 0)
+						SearchInput.Position = UDim2.new(0, 8, 0, 0)
+						SearchInput.BackgroundTransparency = 1
+						SearchInput.TextXAlignment = Enum.TextXAlignment.Left
+						SearchInput.PlaceholderText = "Search..."
+						SearchInput.Text = ""
+						SearchInput.TextColor3 = Starlight.CurrentTheme.Foregrounds.Light
+						SearchInput.PlaceholderColor3 = Starlight.CurrentTheme.Foregrounds.Medium
+						SearchInput.FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+						SearchInput.TextSize = 14
+
+						-- Theme Binding for Search Bar
+						ThemeMethods.bindTheme(SearchFrame, "BackgroundColor3", "Backgrounds.Dark")
+						ThemeMethods.bindTheme(SearchStroke, "Color", "Foregrounds.Dark")
+						ThemeMethods.bindTheme(SearchInput, "TextColor3", "Foregrounds.Light")
+						ThemeMethods.bindTheme(SearchInput, "PlaceholderColor3", "Foregrounds.Medium")
+
+						-- Search Functionality
+						SearchInput:GetPropertyChangedSignal("Text"):Connect(function()
+							local query = SearchInput.Text:lower()
+							for _, option in pairs(NestedElement.Instances[2].List:GetChildren()) do
+								if option:IsA("Frame") and option.Name:find("OPTION_") then
+									if option.header.Text:lower():find(query, 1, true) then
+										option.Visible = true
+									else
+										option.Visible = false
+									end
+								end
+							end
+						end)
+						
+						-- Clear search when dropdown opens
+						NestedElement.Instances[1].Interact.MouseButton1Click:Connect(function()
+							if NestedElement.Instances[2].Visible then
+								SearchInput.Text = ""
+							end
+						end)
+					end
+		
 							acrylicEvent.Event:Connect(function()
 								if mainAcrylic then
 									NestedElement.Instances[2].BackgroundTransparency = 0.5
